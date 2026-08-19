@@ -76,6 +76,10 @@ function Home() {
                 className="card-img-top p-3"
                 style={{ height: "200px", objectFit: "contain" }}
                 alt={product.title}
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://placehold.co/300x300?text=No+Image";
+                }}
               />
               <div className="card-body d-flex flex-column">
                 <h5 className="card-title">{product.title}</h5>

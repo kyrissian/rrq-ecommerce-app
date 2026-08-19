@@ -57,6 +57,10 @@ function Cart() {
                   objectFit: "contain",
                 }}
                 className="me-3"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://placehold.co/60x60?text=No+Image";
+                }}
               />
               <div className="flex-grow-1">
                 <p className="mb-1">{item.title}</p>

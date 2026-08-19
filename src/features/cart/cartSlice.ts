@@ -31,17 +31,46 @@ interface CartState {
   items: CartItem[];
 }
 
+const SESSION_STORAGE_KEY = "cart";
+
 /**
- * The cart starts out empty every time the app first loads,
- * before we hydrate it from sessionStorage (we'll wire that up later).
+ * Reads the persisted cart items out of sessionStorage, if any exist.
+ * Falls back to an empty array if nothing is saved yet, or if the
+ * saved data is malformed for any reason.
+ *
+ * @returns The array of cart items to use as the initial cart state.
+ */
+function loadCartFromSessionStorage(): CartItem[] {
+  try {
+    const savedCart = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    return savedCart ? JSON.parse(savedCart) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Saves the current cart items to sessionStorage so they persist
+ * across page refreshes within the same browser tab/session.
+ *
+ * @param items - The current array of cart items to persist.
+ */
+function saveCartToSessionStorage(items: CartItem[]): void {
+  sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(items));
+}
+
+/**
+ * The cart is hydrated from sessionStorage on load, so a page refresh
+ * doesn't wipe out whatever the user had added.
  */
 const initialState: CartState = {
-  items: [],
+  items: loadCartFromSessionStorage(),
 };
 
 /**
  * Redux Toolkit slice that manages all shopping cart state:
  * adding products, removing products, and clearing the cart at checkout.
+ * Every change is persisted to sessionStorage automatically.
  */
 const cartSlice = createSlice({
   name: "cart",
@@ -61,6 +90,8 @@ const cartSlice = createSlice({
       } else {
         state.items.push({ ...action.payload, count: 1 });
       }
+
+      saveCartToSessionStorage(state.items);
     },
 
     /**
@@ -68,6 +99,7 @@ const cartSlice = createSlice({
      */
     removeFromCart: (state, action: PayloadAction<number>) => {
       state.items = state.items.filter((item) => item.id !== action.payload);
+      saveCartToSessionStorage(state.items);
     },
 
     /**
@@ -75,6 +107,7 @@ const cartSlice = createSlice({
      */
     clearCart: (state) => {
       state.items = [];
+      saveCartToSessionStorage(state.items);
     },
   },
 });
