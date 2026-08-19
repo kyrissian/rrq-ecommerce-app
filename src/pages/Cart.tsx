@@ -46,16 +46,12 @@ function Cart() {
           {items.map((item) => (
             <div
               key={item.id}
-              className="d-flex align-items-center border-bottom py-3"
+              className="d-flex align-items-center cart-divider py-3"
             >
               <img
                 src={item.image}
                 alt={item.title}
-                style={{
-                  width: "60px",
-                  height: "60px",
-                  objectFit: "contain",
-                }}
+                style={{ width: "60px", height: "60px", objectFit: "contain" }}
                 className="me-3"
                 onError={(e) => {
                   e.currentTarget.src =
@@ -64,12 +60,12 @@ function Cart() {
               />
               <div className="flex-grow-1">
                 <p className="mb-1">{item.title}</p>
-                <p className="mb-0 text-muted">
-                  Qty: {item.count} × ${item.price}
+                <p className="mb-0 text-muted receipt-total">
+                  Qty: {item.count} × ${item.price.toFixed(2)}
                 </p>
               </div>
               <button
-                className="btn btn-outline-danger btn-sm"
+                className="btn btn-remove btn-sm"
                 onClick={() => dispatch(removeFromCart(item.id))}
               >
                 Remove
@@ -79,10 +75,10 @@ function Cart() {
 
           <div className="mt-4">
             <p className="fs-5">Total items: {totalItems}</p>
-            <p className="fs-5 fw-bold">
+            <p className="fs-5 fw-bold receipt-total">
               Total price: ${totalPrice.toFixed(2)}
             </p>
-            <button className="btn btn-success" onClick={handleCheckout}>
+            <button className="btn btn-brand" onClick={handleCheckout}>
               Checkout
             </button>
           </div>
