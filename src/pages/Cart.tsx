@@ -1,0 +1,91 @@
+import { useState } from "react";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { removeFromCart, clearCart } from "../features/cart/cartSlice";
+
+/**
+ * Cart page displaying all items currently in the shopping cart,
+ * their quantities and prices, running totals, and controls to
+ * remove individual items or complete checkout (which simulates
+ * a purchase by clearing the cart and showing a confirmation message).
+ */
+function Cart() {
+  const items = useAppSelector((state) => state.cart.items);
+  const dispatch = useAppDispatch();
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const totalItems = items.reduce((sum, item) => sum + item.count, 0);
+  const totalPrice = items.reduce(
+    (sum, item) => sum + item.price * item.count,
+    0,
+  );
+
+  /**
+   * Simulates a checkout by clearing the cart and briefly showing
+   * a success message to confirm the action to the user.
+   */
+  const handleCheckout = () => {
+    dispatch(clearCart());
+    setShowConfirmation(true);
+    setTimeout(() => setShowConfirmation(false), 3000);
+  };
+
+  return (
+    <div className="container mt-4">
+      <h1>Shopping Cart</h1>
+
+      {showConfirmation && (
+        <div className="alert alert-success" role="alert">
+          Checkout successful! Your cart has been cleared.
+        </div>
+      )}
+
+      {items.length === 0 ? (
+        <p>Your cart is empty.</p>
+      ) : (
+        <>
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="d-flex align-items-center border-bottom py-3"
+            >
+              <img
+                src={item.image}
+                alt={item.title}
+                style={{
+                  width: "60px",
+                  height: "60px",
+                  objectFit: "contain",
+                }}
+                className="me-3"
+              />
+              <div className="flex-grow-1">
+                <p className="mb-1">{item.title}</p>
+                <p className="mb-0 text-muted">
+                  Qty: {item.count} × ${item.price}
+                </p>
+              </div>
+              <button
+                className="btn btn-outline-danger btn-sm"
+                onClick={() => dispatch(removeFromCart(item.id))}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+
+          <div className="mt-4">
+            <p className="fs-5">Total items: {totalItems}</p>
+            <p className="fs-5 fw-bold">
+              Total price: ${totalPrice.toFixed(2)}
+            </p>
+            <button className="btn btn-success" onClick={handleCheckout}>
+              Checkout
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default Cart;
