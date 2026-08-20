@@ -110,6 +110,29 @@ const cartSlice = createSlice({
     },
 
     /**
+     * Sets a specific product's quantity directly. If the resulting
+     * quantity is 0 or less, the item is removed from the cart entirely
+     * rather than being left in the cart at a zero count.
+     */
+    updateQuantity: (
+      state,
+      action: PayloadAction<{ id: number; count: number }>,
+    ) => {
+      const { id, count } = action.payload;
+
+      if (count <= 0) {
+        state.items = state.items.filter((item) => item.id !== id);
+      } else {
+        const item = state.items.find((item) => item.id === id);
+        if (item) {
+          item.count = count;
+        }
+      }
+
+      saveCartToSessionStorage(state.items);
+    },
+
+    /**
      * Empties the entire cart. Used when the user completes checkout.
      */
     clearCart: (state) => {
@@ -119,5 +142,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, removeFromCart, clearCart } = cartSlice.actions;
+export const { addToCart, removeFromCart, clearCart, updateQuantity } =
+  cartSlice.actions;
 export default cartSlice.reducer;

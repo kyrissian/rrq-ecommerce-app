@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { useAppDispatch } from "../app/hooks";
 import { useCartTotals } from "../app/useCartTotals";
-import { removeFromCart, clearCart } from "../features/cart/cartSlice";
+import {
+  removeFromCart,
+  clearCart,
+  updateQuantity,
+} from "../features/cart/cartSlice";
 import { handleImageError } from "../utils/handleImageError";
 
 /**
  * Cart page displaying all items currently in the shopping cart,
  * their quantities and prices, running totals, and controls to
- * remove individual items or complete checkout (which simulates
- * a purchase by clearing the cart and showing a confirmation message).
+ * adjust quantities, remove individual items, or complete checkout
+ * (which simulates a purchase by clearing the cart and showing a
+ * confirmation message).
  */
 function Cart() {
   const { items, totalItems, totalPrice } = useCartTotals();
@@ -54,9 +59,41 @@ function Cart() {
               <div className="flex-grow-1">
                 <p className="mb-1">{item.title}</p>
                 <p className="mb-0 text-muted receipt-total">
-                  Qty: {item.count} × ${item.price.toFixed(2)}
+                  ${item.price.toFixed(2)} each
                 </p>
               </div>
+
+              <div className="d-flex align-items-center gap-2 me-3">
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() =>
+                    dispatch(
+                      updateQuantity({ id: item.id, count: item.count - 1 }),
+                    )
+                  }
+                  aria-label={`Decrease quantity of ${item.title}`}
+                >
+                  −
+                </button>
+                <span
+                  className="receipt-total"
+                  style={{ minWidth: "1.5rem", textAlign: "center" }}
+                >
+                  {item.count}
+                </span>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() =>
+                    dispatch(
+                      updateQuantity({ id: item.id, count: item.count + 1 }),
+                    )
+                  }
+                  aria-label={`Increase quantity of ${item.title}`}
+                >
+                  +
+                </button>
+              </div>
+
               <button
                 className="btn btn-remove btn-sm"
                 onClick={() => dispatch(removeFromCart(item.id))}
