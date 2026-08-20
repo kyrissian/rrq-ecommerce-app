@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchAllProducts,
@@ -17,15 +18,35 @@ type SortOrder =
 
 /**
  * Home page displaying the product catalog fetched from FakeStoreAPI.
- * Supports filtering products by category and sorting by price, name,
- * or rating, and uses React Query to handle fetching, loading, and
- * error states. Shows a brief toast notification whenever a product
- * is added to the cart.
+ * Supports filtering by category, searching by title, and sorting by
+ * price, name, or rating. Filter/search/sort state is kept in the URL
+ * query string so the current view can be refreshed, bookmarked, or
+ * shared. Uses React Query to handle fetching, loading, and error
+ * states, and shows a brief toast notification whenever a product is
+ * added to the cart.
  */
 function Home() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("");
+  const [searchParams, setSearchParams] = useSearchParams();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const selectedCategory = searchParams.get("category") ?? "";
+  const sortOrder = (searchParams.get("sort") ?? "") as SortOrder;
+  const searchQuery = searchParams.get("q") ?? "";
+
+  /**
+   * Updates a single query param while leaving the others untouched.
+   * Removes the param entirely when set to an empty string, so the
+   * URL stays clean (e.g. "/" instead of "/?category=&sort=").
+   */
+  const updateParam = (key: string, value: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value) {
+      next.set(key, value);
+    } else {
+      next.delete(key);
+    }
+    setSearchParams(next);
+  };
 
   const { data: categories, isError: isCategoriesError } = useQuery({
     queryKey: ["categories"],
@@ -62,24 +83,26 @@ function Home() {
     return <p>Something went wrong: {error.message}</p>;
   }
 
-  const sortedProducts = products
-    ? [...products].sort((a, b) => {
-        switch (sortOrder) {
-          case "price-asc":
-            return a.price - b.price;
-          case "price-desc":
-            return b.price - a.price;
-          case "name-asc":
-            return a.title.localeCompare(b.title);
-          case "name-desc":
-            return b.title.localeCompare(a.title);
-          case "rating-desc":
-            return b.rating.rate - a.rating.rate;
-          default:
-            return 0;
-        }
-      })
-    : [];
+  const filteredProducts = (products ?? []).filter((product) =>
+    product.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortOrder) {
+      case "price-asc":
+        return a.price - b.price;
+      case "price-desc":
+        return b.price - a.price;
+      case "name-asc":
+        return a.title.localeCompare(b.title);
+      case "name-desc":
+        return b.title.localeCompare(a.title);
+      case "rating-desc":
+        return b.rating.rate - a.rating.rate;
+      default:
+        return 0;
+    }
+  });
 
   return (
     <div className="container mt-4">
@@ -95,6 +118,23 @@ function Home() {
         <div className="d-flex flex-wrap gap-3">
           <div>
             <label
+              htmlFor="search-input"
+              className="form-label small text-muted mb-1"
+            >
+              Search
+            </label>
+            <input
+              id="search-input"
+              type="text"
+              className="form-control"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => updateParam("q", e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label
               htmlFor="category-select"
               className="form-label small text-muted mb-1"
             >
@@ -104,7 +144,7 @@ function Home() {
               id="category-select"
               className="form-select"
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => updateParam("category", e.target.value)}
             >
               <option value="">All Categories</option>
               {isCategoriesError ? (
@@ -130,7 +170,7 @@ function Home() {
               id="sort-select"
               className="form-select"
               value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+              onChange={(e) => updateParam("sort", e.target.value)}
             >
               <option value="">Default</option>
               <option value="price-asc">Price: Low to High</option>
