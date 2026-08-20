@@ -130,3 +130,11 @@ h5 {
 .cart-divider {
   border-top: 1px dashed var(--color-line);
 }
+
+.toast-notification {
+  position: fixed;
+  top: 90px;
+  right: 24px;
+  z-index: 1050;
+  min-width: 260px;
+}

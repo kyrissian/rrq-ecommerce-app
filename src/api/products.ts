@@ -31,3 +31,7 @@ export function fetchCategories(): Promise<string[]> {
 export function fetchProductsByCategory(category: string): Promise<Product[]> {
   return fetchJson<Product[]>(`${BASE_URL}/products/category/${category}`);
 }
+
+export function fetchProductById(id: number): Promise<Product> {
+  return fetchJson<Product>(`${BASE_URL}/products/${id}`);
+}

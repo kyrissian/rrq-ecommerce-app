@@ -5,9 +5,7 @@ import {
   fetchCategories,
   fetchProductsByCategory,
 } from "../api/products";
-import { useAppDispatch } from "../app/hooks";
-import { addToCart } from "../features/cart/cartSlice";
-import { handleImageError } from "../utils/handleImageError";
+import ProductCard from "../components/ProductCard";
 
 type SortOrder =
   | ""
@@ -21,12 +19,13 @@ type SortOrder =
  * Home page displaying the product catalog fetched from FakeStoreAPI.
  * Supports filtering products by category and sorting by price, name,
  * or rating, and uses React Query to handle fetching, loading, and
- * error states.
+ * error states. Shows a brief toast notification whenever a product
+ * is added to the cart.
  */
 function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("");
-  const dispatch = useAppDispatch();
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const { data: categories, isError: isCategoriesError } = useQuery({
     queryKey: ["categories"],
@@ -45,6 +44,15 @@ function Home() {
         ? fetchProductsByCategory(selectedCategory)
         : fetchAllProducts(),
   });
+
+  /**
+   * Shows a brief toast confirming a product was added to the cart,
+   * automatically hiding it after 2 seconds.
+   */
+  const handleAdded = (title: string) => {
+    setToastMessage(`${title} added to cart`);
+    setTimeout(() => setToastMessage(null), 2000);
+  };
 
   if (isLoading) {
     return <p>Loading products...</p>;
@@ -75,6 +83,12 @@ function Home() {
 
   return (
     <div className="container mt-4">
+      {toastMessage && (
+        <div className="alert alert-success toast-notification" role="alert">
+          {toastMessage}
+        </div>
+      )}
+
       <div className="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
         <h1 className="mb-0">Products</h1>
 
@@ -135,34 +149,7 @@ function Home() {
         <div className="row">
           {sortedProducts.map((product) => (
             <div key={product.id} className="col-md-4 mb-4">
-              <div className="card product-card h-100">
-                <img
-                  src={product.image}
-                  className="card-img-top p-3"
-                  style={{ height: "200px", objectFit: "contain" }}
-                  alt={product.title}
-                  onError={(e) => handleImageError(e, "300x300")}
-                />
-                <div className="card-body d-flex flex-column">
-                  <h5 className="card-title">{product.title}</h5>
-                  <p className="card-text text-muted">{product.category}</p>
-                  <p className="card-text small text-muted">
-                    ★ {product.rating.rate.toFixed(1)} ({product.rating.count}{" "}
-                    reviews)
-                  </p>
-                  <p className="card-text">
-                    <span className="price-tag">
-                      ${product.price.toFixed(2)}
-                    </span>
-                  </p>
-                  <button
-                    className="btn btn-brand mt-auto"
-                    onClick={() => dispatch(addToCart(product))}
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
+              <ProductCard product={product} onAdded={handleAdded} />
             </div>
           ))}
         </div>
