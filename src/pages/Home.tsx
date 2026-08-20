@@ -8,12 +8,19 @@ import {
 import { useAppDispatch } from "../app/hooks";
 import { addToCart } from "../features/cart/cartSlice";
 
-type SortOrder = "" | "asc" | "desc";
+type SortOrder =
+  | ""
+  | "price-asc"
+  | "price-desc"
+  | "name-asc"
+  | "name-desc"
+  | "rating-desc";
 
 /**
  * Home page displaying the product catalog fetched from FakeStoreAPI.
- * Supports filtering products by category and sorting by price, and
- * uses React Query to handle fetching, loading, and error states.
+ * Supports filtering products by category and sorting by price, name,
+ * or rating, and uses React Query to handle fetching, loading, and
+ * error states.
  */
 function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -48,9 +55,20 @@ function Home() {
 
   const sortedProducts = products
     ? [...products].sort((a, b) => {
-        if (sortOrder === "asc") return a.price - b.price;
-        if (sortOrder === "desc") return b.price - a.price;
-        return 0;
+        switch (sortOrder) {
+          case "price-asc":
+            return a.price - b.price;
+          case "price-desc":
+            return b.price - a.price;
+          case "name-asc":
+            return a.title.localeCompare(b.title);
+          case "name-desc":
+            return b.title.localeCompare(a.title);
+          case "rating-desc":
+            return b.rating.rate - a.rating.rate;
+          default:
+            return 0;
+        }
       })
     : [];
 
@@ -87,7 +105,7 @@ function Home() {
               htmlFor="sort-select"
               className="form-label small text-muted mb-1"
             >
-              Sort by price
+              Sort
             </label>
             <select
               id="sort-select"
@@ -96,8 +114,11 @@ function Home() {
               onChange={(e) => setSortOrder(e.target.value as SortOrder)}
             >
               <option value="">Default</option>
-              <option value="asc">Low to High</option>
-              <option value="desc">High to Low</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="name-asc">Name: A to Z</option>
+              <option value="name-desc">Name: Z to A</option>
+              <option value="rating-desc">Rating: High to Low</option>
             </select>
           </div>
         </div>
@@ -120,6 +141,10 @@ function Home() {
               <div className="card-body d-flex flex-column">
                 <h5 className="card-title">{product.title}</h5>
                 <p className="card-text text-muted">{product.category}</p>
+                <p className="card-text small text-muted">
+                  ★ {product.rating.rate.toFixed(1)} ({product.rating.count}{" "}
+                  reviews)
+                </p>
                 <p className="card-text">
                   <span className="price-tag">${product.price.toFixed(2)}</span>
                 </p>

@@ -13,8 +13,8 @@ function Navbar() {
   return (
     <nav className="app-navbar navbar navbar-expand px-4 py-3">
       <div className="container-fluid px-0 d-flex justify-content-between align-items-center">
-        <Link className="navbar-brand" to="/">
-          RRQ Store
+        <Link className="navbar-brand fs-3" to="/">
+          The Daily Haul
         </Link>
 
         <div className="d-flex align-items-center gap-4">
