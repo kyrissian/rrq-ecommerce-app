@@ -58,6 +58,7 @@ function Home() {
     isLoading,
     isError,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["products", selectedCategory],
     queryFn: () =>
@@ -76,11 +77,25 @@ function Home() {
   };
 
   if (isLoading) {
-    return <p>Loading products...</p>;
+    return <p className="container mt-4">Loading products...</p>;
   }
 
   if (isError) {
-    return <p>Something went wrong: {error.message}</p>;
+    return (
+      <div className="container mt-4">
+        <div className="alert alert-danger" role="alert">
+          <p className="mb-2">
+            Something went wrong while loading the products.
+          </p>
+          <p className="mb-2">
+            {error instanceof Error ? error.message : "Please try again."}
+          </p>
+          <button className="btn btn-brand" onClick={() => void refetch()}>
+            Try again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const filteredProducts = (products ?? []).filter((product) =>
