@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { useAppDispatch } from "../app/hooks";
+import { useCartTotals } from "../app/useCartTotals";
 import { removeFromCart, clearCart } from "../features/cart/cartSlice";
+import { handleImageError } from "../utils/handleImageError";
 
 /**
  * Cart page displaying all items currently in the shopping cart,
@@ -9,15 +11,9 @@ import { removeFromCart, clearCart } from "../features/cart/cartSlice";
  * a purchase by clearing the cart and showing a confirmation message).
  */
 function Cart() {
-  const items = useAppSelector((state) => state.cart.items);
+  const { items, totalItems, totalPrice } = useCartTotals();
   const dispatch = useAppDispatch();
   const [showConfirmation, setShowConfirmation] = useState(false);
-
-  const totalItems = items.reduce((sum, item) => sum + item.count, 0);
-  const totalPrice = items.reduce(
-    (sum, item) => sum + item.price * item.count,
-    0,
-  );
 
   /**
    * Simulates a checkout by clearing the cart and briefly showing
@@ -53,10 +49,7 @@ function Cart() {
                 alt={item.title}
                 style={{ width: "60px", height: "60px", objectFit: "contain" }}
                 className="me-3"
-                onError={(e) => {
-                  e.currentTarget.src =
-                    "https://placehold.co/60x60?text=No+Image";
-                }}
+                onError={(e) => handleImageError(e, "60x60")}
               />
               <div className="flex-grow-1">
                 <p className="mb-1">{item.title}</p>

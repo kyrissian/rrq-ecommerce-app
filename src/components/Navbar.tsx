@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useAppSelector } from "../app/hooks";
+import { useCartTotals } from "../app/useCartTotals";
 
 /**
  * Site navigation bar shown on every page. Displays a live badge on
@@ -7,8 +7,7 @@ import { useAppSelector } from "../app/hooks";
  * the shopping cart.
  */
 function Navbar() {
-  const items = useAppSelector((state) => state.cart.items);
-  const totalItems = items.reduce((sum, item) => sum + item.count, 0);
+  const { totalItems } = useCartTotals();
 
   return (
     <nav className="app-navbar navbar navbar-expand px-4 py-3">

@@ -7,6 +7,7 @@ import {
 } from "../api/products";
 import { useAppDispatch } from "../app/hooks";
 import { addToCart } from "../features/cart/cartSlice";
+import { handleImageError } from "../utils/handleImageError";
 
 type SortOrder =
   | ""
@@ -27,7 +28,7 @@ function Home() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("");
   const dispatch = useAppDispatch();
 
-  const { data: categories } = useQuery({
+  const { data: categories, isError: isCategoriesError } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
   });
@@ -92,11 +93,15 @@ function Home() {
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
               <option value="">All Categories</option>
-              {categories?.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
+              {isCategoriesError ? (
+                <option disabled>Categories unavailable</option>
+              ) : (
+                categories?.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
@@ -124,41 +129,44 @@ function Home() {
         </div>
       </div>
 
-      <div className="row">
-        {sortedProducts.map((product) => (
-          <div key={product.id} className="col-md-4 mb-4">
-            <div className="card product-card h-100">
-              <img
-                src={product.image}
-                className="card-img-top p-3"
-                style={{ height: "200px", objectFit: "contain" }}
-                alt={product.title}
-                onError={(e) => {
-                  e.currentTarget.src =
-                    "https://placehold.co/300x300?text=No+Image";
-                }}
-              />
-              <div className="card-body d-flex flex-column">
-                <h5 className="card-title">{product.title}</h5>
-                <p className="card-text text-muted">{product.category}</p>
-                <p className="card-text small text-muted">
-                  ★ {product.rating.rate.toFixed(1)} ({product.rating.count}{" "}
-                  reviews)
-                </p>
-                <p className="card-text">
-                  <span className="price-tag">${product.price.toFixed(2)}</span>
-                </p>
-                <button
-                  className="btn btn-brand mt-auto"
-                  onClick={() => dispatch(addToCart(product))}
-                >
-                  Add to Cart
-                </button>
+      {sortedProducts.length === 0 ? (
+        <p>No products found.</p>
+      ) : (
+        <div className="row">
+          {sortedProducts.map((product) => (
+            <div key={product.id} className="col-md-4 mb-4">
+              <div className="card product-card h-100">
+                <img
+                  src={product.image}
+                  className="card-img-top p-3"
+                  style={{ height: "200px", objectFit: "contain" }}
+                  alt={product.title}
+                  onError={(e) => handleImageError(e, "300x300")}
+                />
+                <div className="card-body d-flex flex-column">
+                  <h5 className="card-title">{product.title}</h5>
+                  <p className="card-text text-muted">{product.category}</p>
+                  <p className="card-text small text-muted">
+                    ★ {product.rating.rate.toFixed(1)} ({product.rating.count}{" "}
+                    reviews)
+                  </p>
+                  <p className="card-text">
+                    <span className="price-tag">
+                      ${product.price.toFixed(2)}
+                    </span>
+                  </p>
+                  <button
+                    className="btn btn-brand mt-auto"
+                    onClick={() => dispatch(addToCart(product))}
+                  >
+                    Add to Cart
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

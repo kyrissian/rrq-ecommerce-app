@@ -35,15 +35,16 @@ const SESSION_STORAGE_KEY = "cart";
 
 /**
  * Reads the persisted cart items out of sessionStorage, if any exist.
- * Falls back to an empty array if nothing is saved yet, or if the
- * saved data is malformed for any reason.
+ * Falls back to an empty array if nothing is saved yet, if the saved
+ * data is malformed JSON, or if the parsed data isn't actually an array.
  *
  * @returns The array of cart items to use as the initial cart state.
  */
 function loadCartFromSessionStorage(): CartItem[] {
   try {
     const savedCart = sessionStorage.getItem(SESSION_STORAGE_KEY);
-    return savedCart ? JSON.parse(savedCart) : [];
+    const parsed = savedCart ? JSON.parse(savedCart) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -51,12 +52,18 @@ function loadCartFromSessionStorage(): CartItem[] {
 
 /**
  * Saves the current cart items to sessionStorage so they persist
- * across page refreshes within the same browser tab/session.
+ * across page refreshes within the same browser tab/session. Fails
+ * silently if storage is unavailable or full, since the cart still
+ * works fine in-memory for the rest of the session either way.
  *
  * @param items - The current array of cart items to persist.
  */
 function saveCartToSessionStorage(items: CartItem[]): void {
-  sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(items));
+  try {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    // Storage unavailable or full — cart still works in-memory for this session.
+  }
 }
 
 /**
