@@ -12,10 +12,10 @@ import { handleImageError } from "../utils/handleImageError";
 /**
  * Cart page displaying all items currently in the shopping cart,
  * their quantities and prices, running totals, and controls to
- * adjust quantities, remove individual items, or complete checkout
- * (which simulates a purchase by clearing the cart and showing a
- * confirmation message). Item images and titles link to each
- * product's detail page.
+ * adjust quantities, remove individual items, clear the entire cart,
+ * or complete checkout (which simulates a purchase by clearing the
+ * cart and showing a confirmation message). Item images and titles
+ * link to each product's detail page.
  */
 function Cart() {
   const { items, totalItems, totalPrice } = useCartTotals();
@@ -32,9 +32,28 @@ function Cart() {
     setTimeout(() => setShowConfirmation(false), 3000);
   };
 
+  /**
+   * Empties the cart without treating it as a completed purchase —
+   * no confirmation banner, just an immediate reset.
+   */
+  const handleClearCart = () => {
+    dispatch(clearCart());
+  };
+
   return (
     <div className="container mt-4">
-      <h1>Shopping Cart</h1>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h1 className="mb-0">Shopping Cart</h1>
+        {items.length > 0 && (
+          <button
+            type="button"
+            className="btn btn-outline-secondary btn-sm"
+            onClick={handleClearCart}
+          >
+            Clear Cart
+          </button>
+        )}
+      </div>
 
       {showConfirmation && (
         <div className="alert alert-success" role="alert">
