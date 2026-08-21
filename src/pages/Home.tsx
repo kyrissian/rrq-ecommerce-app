@@ -21,9 +21,9 @@ type SortOrder =
  * Supports filtering by category, searching by title, and sorting by
  * price, name, or rating. Filter/search/sort state is kept in the URL
  * query string so the current view can be refreshed, bookmarked, or
- * shared. Uses React Query to handle fetching, loading, and error
- * states, and shows a brief toast notification whenever a product is
- * added to the cart.
+ * shared, and can be cleared in one click. Uses React Query to handle
+ * fetching, loading, and error states, and shows a brief toast
+ * notification whenever a product is added to the cart.
  */
 function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -32,6 +32,10 @@ function Home() {
   const selectedCategory = searchParams.get("category") ?? "";
   const sortOrder = (searchParams.get("sort") ?? "") as SortOrder;
   const searchQuery = searchParams.get("q") ?? "";
+
+  const hasActiveFilters = Boolean(
+    selectedCategory || sortOrder || searchQuery,
+  );
 
   /**
    * Updates a single query param while leaving the others untouched.
@@ -46,6 +50,14 @@ function Home() {
       next.delete(key);
     }
     setSearchParams(next);
+  };
+
+  /**
+   * Clears search, category, and sort all at once, resetting the URL
+   * back to its default state.
+   */
+  const handleClearFilters = () => {
+    setSearchParams(new URLSearchParams());
   };
 
   const { data: categories, isError: isCategoriesError } = useQuery({
@@ -130,7 +142,7 @@ function Home() {
       <div className="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
         <h1 className="mb-0">Products</h1>
 
-        <div className="d-flex flex-wrap gap-3">
+        <div className="d-flex flex-wrap align-items-end gap-3">
           <div>
             <label
               htmlFor="search-input"
@@ -195,6 +207,18 @@ function Home() {
               <option value="rating-desc">Rating: High to Low</option>
             </select>
           </div>
+
+          {hasActiveFilters && (
+            <div>
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={handleClearFilters}
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
